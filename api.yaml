@@ -1,0 +1,504 @@
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  AppSyncApi:
+    Type: AWS::AppSync::GraphQLApi
+    Properties:
+      Name: DemoAPI
+      AuthenticationType: API_KEY
+  AppSyncApiKey:
+    Type: AWS::AppSync::ApiKey
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+    DependsOn:
+    - AppSyncApi
+  AppSyncSchema:
+    Type: AWS::AppSync::GraphQLSchema
+    Properties:
+      ApiId: !GetAtt AppSyncApi.ApiId
+      Definition: |
+        type Event {
+          id: ID!
+          day: Day
+          title: String!
+          time: AWSTime!
+          location: String
+          description: String
+        }
+
+        type Day {
+          id: ID!
+          conference: Conference
+          date: AWSDate!
+          events: [Event]
+        }
+
+        type Conference {
+          id: ID!
+          name: String!
+          startDate: AWSDate!
+          endDate: AWSDate!
+          days: [Day]
+        }
+
+        type Query {
+          getConferences: [Conference]
+          getDays(conferenceID: ID): [Day]
+          getEvents(dayID: ID): [Event]
+        }
+
+        type Mutation {
+          addConference(name: String!, startDate: AWSDate!, endDate: AWSDate!): Conference
+          updateConference(id: ID!, name: String!): Conference
+          addDay(conferenceID: ID!, date: AWSDate!): Day
+          addEvent(dayID: ID!, title: String!, time: AWSTime!, description: String, location: String): Event
+          updateEvent(id: ID!, title: String, time: AWSTime, description: String, location: String): Event
+        }
+
+        type Subscription {
+          addedConference: Conference
+        	@aws_subscribe(mutations: ["addConference"])
+          updatedConference(id: ID): Conference
+        	@aws_subscribe(mutations: ["updateConference"])
+          addedDay(conferenceID: ID): Day
+        	@aws_subscribe(mutations: ["addDay"])
+          addedEvent(dayID: ID): Event
+        	@aws_subscribe(mutations: ["addEvent"])
+          updatedEvent(id: ID): Event
+        	@aws_subscribe(mutations: ["updateEvent"])
+        }
+
+        schema {
+          query: Query
+          mutation: Mutation
+          subscription: Subscription
+        }
+    DependsOn:
+    - AppSyncApi
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+      - AttributeName: id
+        AttributeType: S
+      - AttributeName: objecttype
+        AttributeType: S
+      KeySchema:
+      - AttributeName: objecttype
+        KeyType: HASH
+      - AttributeName: id
+        KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+  AppSyncIAMPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Policy to allow the demo AppSync API to access DynamoDB
+      Path: /appsync/
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action:
+          - dynamodb:GetItem
+          - dynamodb:PutItem
+          - dynamodb:DeleteItem
+          - dynamodb:UpdateItem
+          - dynamodb:Query
+          - dynamodb:Scan
+          - dynamodb:BatchGetItem
+          - dynamodb:BatchWriteItem
+          Resource: !Join ["", [!GetAtt DynamoDBTable.Arn, "*"]]
+  AppSyncIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: demo-appsync-dynamodb-role
+      ManagedPolicyArns:
+      - Ref: AppSyncIAMPolicy
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action:
+          - sts:AssumeRole
+          Principal:
+            Service:
+            - appsync.amazonaws.com
+    DependsOn:
+    - AppSyncIAMPolicy
+  AppSyncDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      Name: DemoTable
+      Type: AMAZON_DYNAMODB
+      ApiId: !GetAtt AppSyncApi.ApiId
+      DynamoDBConfig:
+        TableName: !Ref DynamoDBTable
+        AwsRegion: eu-west-1
+      ServiceRoleArn: !GetAtt AppSyncIAMRole.Arn
+    DependsOn:
+    - AppSyncIAMRole
+    - DynamoDBTable
+  EventDayResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      TypeName: Event
+      DataSourceName: !GetAtt AppSyncDataSource.Name
+      ApiId: !GetAtt AppSyncApi.ApiId
+      FieldName: day
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "GetItem",
+          "key": {
+            "id": $utils.dynamodb.toDynamoDBJson($ctx.source.dayID),
+            "objecttype": { "S": "day" }
+          }
+        }
+      ResponseMappingTemplate: |
+        $utils.toJson($ctx.result)
+    DependsOn:
+    - AppSyncDataSource
+    - AppSyncApi
+    - AppSyncSchema
+  DayConferenceResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      TypeName: Day
+      DataSourceName: !GetAtt AppSyncDataSource.Name
+      ApiId: !GetAtt AppSyncApi.ApiId
+      FieldName: conference
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "GetItem",
+          "key": {
+            "id": $utils.dynamodb.toDynamoDBJson($ctx.source.conferenceID),
+            "objecttype": { "S": "conference" }
+          }
+        }
+      ResponseMappingTemplate: |
+        $utils.toJson($ctx.result)
+    DependsOn:
+    - AppSyncDataSource
+    - AppSyncApi
+    - AppSyncSchema
+  DayEventsResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      TypeName: Day
+      DataSourceName: !GetAtt AppSyncDataSource.Name
+      ApiId: !GetAtt AppSyncApi.ApiId
+      FieldName: events
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "Query",
+          "query" : {
+            "expression" : "objecttype = :type AND dayID = :dayID ",
+            "expressionValues" : {
+              ":type": { "S": "event"},
+              ":dayID": $utils.dynamodb.toDynamoDBJson($ctx.source.id)
+            }
+          }
+        }
+      ResponseMappingTemplate: |
+        $utils.toJson($ctx.result.items)
+    DependsOn:
+    - AppSyncDataSource
+    - AppSyncApi
+    - AppSyncSchema
+  ConferenceDaysResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      TypeName: Conference
+      DataSourceName: !GetAtt AppSyncDataSource.Name
+      ApiId: !GetAtt AppSyncApi.ApiId
+      FieldName: days
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "Query",
+          "query" : {
+            "expression" : "objecttype = :type AND conferenceID = :conferenceID",
+            "expressionValues" : {
+              ":type": { "S": "day"},
+              ":conferenceID": $utils.dynamodb.toDynamoDBJson($ctx.source.id)
+            }
+          }
+        }
+      ResponseMappingTemplate: |
+        $utils.toJson($ctx.result.items)
+    DependsOn:
+    - AppSyncDataSource
+    - AppSyncApi
+    - AppSyncSchema
+  GetConferencesResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      TypeName: Query
+      DataSourceName: !GetAtt AppSyncDataSource.Name
+      ApiId: !GetAtt AppSyncApi.ApiId
+      FieldName: getConferences
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "Query",
+          "query" : {
+            "expression" : "objecttype = :type",
+            "expressionValues" : {
+              ":type": { "S": "conference"}
+            }
+          }
+        }
+      ResponseMappingTemplate: |
+        $utils.toJson($ctx.result.items)
+    DependsOn:
+    - AppSyncDataSource
+    - AppSyncApi
+    - AppSyncSchema
+  GetDaysResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      TypeName: Query
+      DataSourceName: !GetAtt AppSyncDataSource.Name
+      ApiId: !GetAtt AppSyncApi.ApiId
+      FieldName: getDays
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "Query",
+          #if (${ctx.args.conferenceID})
+            "filter" : {
+              "expression" : "conferenceID = :conferenceID",
+              "expressionValues" : {
+                ":conferenceID": $utils.dynamodb.toDynamoDBJson($ctx.args.conferenceID)
+              }
+            },
+          #end
+          "query" : {
+            "expression" : "objecttype = :type",
+            "expressionValues" : {
+              ":type": { "S": "day"}
+            }
+          }
+        }
+      ResponseMappingTemplate: |
+        $utils.toJson($ctx.result.items)
+    DependsOn:
+    - AppSyncDataSource
+    - AppSyncApi
+    - AppSyncSchema
+  GetEventsResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      TypeName: Query
+      DataSourceName: !GetAtt AppSyncDataSource.Name
+      ApiId: !GetAtt AppSyncApi.ApiId
+      FieldName: getEvents
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "Query",
+          #if (${ctx.args.dayID})
+            "filter" : {
+              "expression" : "dayID = :dayID",
+              "expressionValues" : {
+                ":dayID": $utils.dynamodb.toDynamoDBJson($ctx.args.dayID)
+              }
+            },
+          #end
+          "query" : {
+            "expression" : "objecttype = :type",
+            "expressionValues" : {
+              ":type": { "S": "event"}
+            }
+          }
+        }
+      ResponseMappingTemplate: |
+        $utils.toJson($ctx.result.items)
+    DependsOn:
+    - AppSyncDataSource
+    - AppSyncApi
+    - AppSyncSchema
+  AddConferenceResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      TypeName: Mutation
+      DataSourceName: !GetAtt AppSyncDataSource.Name
+      ApiId: !GetAtt AppSyncApi.ApiId
+      FieldName: addConference
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "PutItem",
+          "key": {
+            "id": $utils.dynamodb.toDynamoDBJson($utils.autoId()),
+            "objecttype": { "S": "conference" }
+          },
+          "attributeValues": $utils.dynamodb.toMapValuesJson($ctx.args)
+        }
+      ResponseMappingTemplate: |
+        $utils.toJson($ctx.result)
+    DependsOn:
+      - AppSyncDataSource
+      - AppSyncApi
+      - AppSyncSchema
+  UpdateConferenceResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      TypeName: Mutation
+      DataSourceName: !GetAtt AppSyncDataSource.Name
+      ApiId: !GetAtt AppSyncApi.ApiId
+      FieldName: updateConference
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "UpdateItem",
+          "key": {
+            "id": $utils.dynamodb.toDynamoDBJson($ctx.args.id),
+            "objecttype": { "S": "conference" }
+          },
+          #set( $expNames  = {} )
+          #set( $expValues = {} )
+          #set( $expSet = {} )
+          #foreach( $entry in $ctx.args.entrySet() )
+            #if( $entry.key != "id" )
+              $!{expSet.put("#${entry.key}", ":${entry.key}")}
+              $!{expNames.put("#${entry.key}", "$entry.key")}
+              $!{expValues.put(":${entry.key}", { "S" : "${entry.value}" })}
+            #end
+          #end
+          #set( $expression = "" )
+          #if( !${expSet.isEmpty()} )
+            #set( $expression = "SET" )
+            #foreach( $entry in $expSet.entrySet() )
+              #set( $expression = "${expression} ${entry.key} = ${entry.value}" )
+              #if ( $foreach.hasNext )
+                #set( $expression = "${expression}," )
+              #end
+            #end
+          #end
+          "update" : {
+            "expression" : "${expression}"
+            #if( !${expNames.isEmpty()} )
+                ,"expressionNames" : $utils.toJson($expNames)
+            #end
+            #if( !${expValues.isEmpty()} )
+                ,"expressionValues" : $utils.toJson($expValues)
+            #end
+          }
+        }
+      ResponseMappingTemplate: |
+        $utils.toJson($ctx.result)
+    DependsOn:
+    - AppSyncDataSource
+    - AppSyncApi
+    - AppSyncSchema
+  AddDayResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      TypeName: Mutation
+      DataSourceName: !GetAtt AppSyncDataSource.Name
+      ApiId: !GetAtt AppSyncApi.ApiId
+      FieldName: addDay
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "PutItem",
+          "key": {
+            "id": $utils.dynamodb.toDynamoDBJson($utils.autoId()),
+            "objecttype": { "S": "day" }
+          },
+          "attributeValues": $utils.dynamodb.toMapValuesJson($ctx.args)
+        }
+      ResponseMappingTemplate: |
+        $utils.toJson($ctx.result)
+    DependsOn:
+      - AppSyncDataSource
+      - AppSyncApi
+      - AppSyncSchema
+  AddEventResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      TypeName: Mutation
+      DataSourceName: !GetAtt AppSyncDataSource.Name
+      ApiId: !GetAtt AppSyncApi.ApiId
+      FieldName: addEvent
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "PutItem",
+          "key": {
+            "id": $utils.dynamodb.toDynamoDBJson($utils.autoId()),
+            "objecttype": { "S": "event" }
+          },
+          "attributeValues": $utils.dynamodb.toMapValuesJson($ctx.args)
+        }
+      ResponseMappingTemplate: |
+        $utils.toJson($ctx.result)
+    DependsOn:
+      - AppSyncDataSource
+      - AppSyncApi
+      - AppSyncSchema
+  UpdateEventResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      TypeName: Mutation
+      DataSourceName: !GetAtt AppSyncDataSource.Name
+      ApiId: !GetAtt AppSyncApi.ApiId
+      FieldName: updateEvent
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "UpdateItem",
+          "key": {
+            "id": $utils.dynamodb.toDynamoDBJson($ctx.args.id),
+            "objecttype": { "S": "event" }
+          },
+          #set( $expNames  = {} )
+          #set( $expValues = {} )
+          #set( $expSet = {} )
+          #foreach( $entry in $ctx.args.entrySet() )
+            #if( $entry.key != "id" )
+              $!{expSet.put("#${entry.key}", ":${entry.key}")}
+              $!{expNames.put("#${entry.key}", "$entry.key")}
+              $!{expValues.put(":${entry.key}", { "S" : "${entry.value}" })}
+            #end
+          #end
+          #set( $expression = "" )
+          #if( !${expSet.isEmpty()} )
+            #set( $expression = "SET" )
+            #foreach( $entry in $expSet.entrySet() )
+              #set( $expression = "${expression} ${entry.key} = ${entry.value}" )
+              #if ( $foreach.hasNext )
+                #set( $expression = "${expression}," )
+              #end
+            #end
+          #end
+          "update" : {
+            "expression" : "${expression}"
+            #if( !${expNames.isEmpty()} )
+                ,"expressionNames" : $utils.toJson($expNames)
+            #end
+            #if( !${expValues.isEmpty()} )
+                ,"expressionValues" : $utils.toJson($expValues)
+            #end
+          }
+        }
+      ResponseMappingTemplate: |
+        $utils.toJson($ctx.result)
+    DependsOn:
+      - AppSyncDataSource
+      - AppSyncApi
+      - AppSyncSchema
+Outputs:
+  AppSyncApiKey:
+    Description: API Key for the AppSync service
+    Value: !GetAtt AppSyncApiKey.ApiKey
+  AppSyncGraphQLEndPoint:
+    Description: GraphQL endpoint for the AppSync service
+    Value: !GetAtt AppSyncApi.GraphQLUrl
+  AppSyncRegion:
+    Description: Region for the AppSync service
+    Value: eu-west-1
