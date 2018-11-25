@@ -1,7 +1,6 @@
 import React, {Component} from "react";
 import {compose, graphql} from "react-apollo";
 import AddedEvent from "../Subscriptions/AddedEventSubscription";
-import UpdatedEvent from "../Subscriptions/UpdatedEventSubscription";
 import GetEvents from "../Queries/GetEventsQuery";
 
 class EventList extends Component {
@@ -41,28 +40,22 @@ const composer = compose(
             events: getEvents ? getEvents : [],
             loading,
             subscribe: () => {
+                console.error("Subscribed Events");
                 const unsubscribeAdded = subscribeToMore({
                     document: AddedEvent,
-                    variables: {
-                        dayID: ownProps.dayID
-                    },
-                    updateQuery: (previousResult, {subscriptionData: {data: {addedEvent}}}) => ({
-                        ...previousResult,
-                        getEvents: [addedEvent, ...previousResult.getEvents.filter(event => event.id !== addedEvent.id)]
-                    })
-                });
-                const unsubscribeUpdated = subscribeToMore({
-                    document: UpdatedEvent,
-                    updateQuery: (previousResult, {subscriptionData: {data: {updatedEvent}}}) => ({
-                        ...previousResult,
-                        getEvents: [updatedEvent, ...previousResult.getEvents.filter(event => event.id !== updatedEvent.id)]
-                    })
+                    updateQuery: (previousResult, {subscriptionData: {data: {addedEvent}}}) => {
+                        if (ownProps.dayID === addedEvent.day.id)
+                            return ({
+                                ...previousResult,
+                                getEvents: [addedEvent, ...previousResult.getEvents.filter(event => event.id !== addedEvent.id)]
+                            });
+                        else return previousResult;
+                    }
                 });
 
                 return () => {
                     console.error("Unsubscribed Events");
                     unsubscribeAdded();
-                    unsubscribeUpdated();
                 }
             }
         }),

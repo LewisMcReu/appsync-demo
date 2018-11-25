@@ -17,26 +17,26 @@ Resources:
       ApiId: !GetAtt AppSyncApi.ApiId
       Definition: |
         type Event {
-          id: ID!
+          id: ID
           day: Day
-          title: String!
-          time: AWSTime!
+          title: String
+          time: AWSTime
           location: String
           description: String
         }
 
         type Day {
-          id: ID!
+          id: ID
           conference: Conference
-          date: AWSDate!
+          date: AWSDate
           events: [Event]
         }
 
         type Conference {
-          id: ID!
-          name: String!
-          startDate: AWSDate!
-          endDate: AWSDate!
+          id: ID
+          name: String
+          startDate: AWSDate
+          endDate: AWSDate
           days: [Day]
         }
 
@@ -57,13 +57,13 @@ Resources:
         type Subscription {
           addedConference: Conference
         	@aws_subscribe(mutations: ["addConference"])
-          updatedConference(id: ID): Conference
+          updatedConference(id: String): Conference
         	@aws_subscribe(mutations: ["updateConference"])
-          addedDay(conferenceID: ID): Day
+          addedDay(conferenceID: String): Day
         	@aws_subscribe(mutations: ["addDay"])
-          addedEvent(dayID: ID): Event
+          addedEvent(dayID: String): Event
         	@aws_subscribe(mutations: ["addEvent"])
-          updatedEvent(id: ID): Event
+          updatedEvent(id: String): Event
         	@aws_subscribe(mutations: ["updateEvent"])
         }
 

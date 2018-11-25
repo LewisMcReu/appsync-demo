@@ -39,8 +39,8 @@ class ConferenceList extends Component {
         const {loading, conferences} = this.props;
         return (
             <div>
-                <button onClick={this.openAdd.bind(this)}>Add conference</button>
-                {this.state.add ? <AddConferenceForm closeModal={this.closeModals.bind(this)}/> : ''}
+                <button className="btn" onClick={this.openAdd.bind(this)}>Add conference</button>
+                {this.state.add ? <AddConferenceForm close={this.closeModals.bind(this)}/> : ''}
                 {this.state.openItem ? (
                     <ConferenceDetail conference={this.state.openItem} close={this.closeModals.bind(this)}/>) : ''}
                 <section id="conference-list">
@@ -66,7 +66,7 @@ class ConferenceList extends Component {
                 <span>{item.name}</span>
                 <span>{item.startDate}</span>
                 <span>{item.endDate}</span>
-                <button onClick={this.openItemDetail.bind(this, item)}>Detail</button>
+                <button className="btn" onClick={this.openItemDetail.bind(this, item)}>Detail</button>
             </div>
         );
     }

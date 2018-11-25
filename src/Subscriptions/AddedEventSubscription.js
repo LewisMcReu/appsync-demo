@@ -1,13 +1,16 @@
 import gql from "graphql-tag";
 
 export default gql`
-subscription addedEvent($dayID: String) {
-    addedEvent(dayID: $dayID) {
+subscription addedEvent {
+    addedEvent {
         id
         title
         time
         location
         description
+        day {
+            id
+        }
     }
 }
 `;

@@ -34,7 +34,7 @@ class DayDetail extends Component {
                 <h2>{item.date}</h2>
                 {this.state.add ?
                     <AddEventForm dayID={item.id} close={this.closeAdd.bind(this)}/> :
-                    <button onClick={this.openAdd.bind(this)}>Add event</button>}
+                    <button className="btn" onClick={this.openAdd.bind(this)}>Add event</button>}
                 <EventList dayID={item.id}/>
             </div>
         );

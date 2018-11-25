@@ -39,17 +39,13 @@ const composer = compose(
                 console.error("Subscribed Days");
                 const unsubscribeAdded = subscribeToMore({
                     document: AddedDaySubscription,
-                    variables: {
-                        conferenceID: ownProps.conferenceID
-                    },
                     updateQuery: (previousResult, {subscriptionData: {data: {addedDay}}}) => {
-                        console.error("Added Day");
-                        console.error(addedDay);
-                        console.error(previousResult);
-                        return ({
-                            ...previousResult,
-                            getDays: [addedDay, ...previousResult.getDays.filter(day => day.id === addedDay.id)]
-                        })
+                        if (addedDay.conference.id === ownProps.conferenceID)
+                            return ({
+                                ...previousResult,
+                                getDays: [addedDay, ...previousResult.getDays.filter(day => day.id !== addedDay.id)]
+                            });
+                        else return previousResult;
                     }
                 });
 

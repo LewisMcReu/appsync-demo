@@ -26,51 +26,51 @@ class AddEventForm extends Component {
     handleAdd() {
         const {title, time, description, location} = this.state;
         this.setState(this.getInitialState(), () => {
-            this.props.addConference({title, time, description, location});
+            this.props.addEvent({title, time, description, location});
             this.props.close();
         });
     };
 
     render() {
         return (
-            <div className="modal z10">
-                <div className="modal-content">
-                    <button className="button-close" onClick={this.props.close}>X</button>
+            <div className="custom-modal z10">
+                <div className="custom-modal-content">
+                    <button className="button-close" onClick={this.props.close}>&times;</button>
                     <h1 className="margin-center">New event</h1>
                     <form>
                         <div>
-                            <label>Title</label>
-                            <input type="text"
+                            <label htmlFor="title">Title</label>
+                            <input className="form-control" type="text"
                                    placeholder="Title"
                                    value={this.state.title}
                                    onChange={this.handleChange.bind(this, 'title')}/>
                         </div>
                         <div>
-                            <label>Time</label>
-                            <input type="time"
+                            <label htmlFor="time">Time</label>
+                            <input className="form-control" type="time"
                                    placeholder="Time"
                                    value={this.state.time}
                                    onChange={this.handleChange.bind(this, 'time')}/>
                         </div>
                         <div>
-                            <label>Location</label>
-                            <input type="text"
+                            <label htmlFor="location">Location</label>
+                            <input className="form-control" type="text"
                                    placeholder="Location"
                                    value={this.state.location}
                                    onChange={this.handleChange.bind(this, 'location')}/>
                         </div>
                         <div>
-                            <label>Description</label>
-                            <textarea
-                                placeholder="Description"
-                                value={this.state.description}
-                                onChange={this.handleChange.bind(this, 'description')}/>
+                            <label htmlFor="description">Description</label>
+                            <textarea className="form-control"
+                                      placeholder="Description"
+                                      value={this.state.description}
+                                      onChange={this.handleChange.bind(this, 'description')}/>
                         </div>
                         <div>
                             <button type="button"
-                                    className="btn-main btn-left"
+                                    className="btn"
                                     onClick={this.handleAdd.bind(this)}>
-                                Add conference
+                                Add event
                             </button>
                         </div>
                     </form>
@@ -82,7 +82,7 @@ class AddEventForm extends Component {
 
 const composer = graphql(AddEventMutation, {
     props: ({mutate, ownProps}) => ({
-        addConference: (event) => mutate({variables: {dayID: ownProps.dayID, ...event}})
+        addEvent: (event) => mutate({variables: {dayID: ownProps.dayID, ...event}})
     })
 });
 

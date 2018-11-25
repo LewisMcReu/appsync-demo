@@ -30,15 +30,15 @@ export default class ConferenceDetail extends Component {
     render() {
         const item = this.props.conference;
         return (
-            <div className="modal">
-                <div className="modal-content conference-detail">
-                    <button className="button-close" onClick={this.props.close}>X</button>
+            <div className="custom-modal">
+                <div className="custom-modal-content conference-detail">
+                    <button className="btn button-close" onClick={this.props.close}>&times;</button>
                     <h1>{item.name}</h1>
                     <span>{item.startDate}</span>
                     <span>{item.endDate}</span>
                     {this.state.add ?
                         <AddDayForm conferenceID={item.id} close={this.closeModals.bind(this)}/> :
-                        <button onClick={this.openAdd.bind(this)}>Add day</button>
+                        <button className="btn" onClick={this.openAdd.bind(this)}>Add day</button>
                     }
                     <DayList conferenceID={item.id}/>
                 </div>

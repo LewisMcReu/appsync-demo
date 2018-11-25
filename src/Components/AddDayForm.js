@@ -32,12 +32,13 @@ class AddDayForm extends Component {
     render() {
         return (
             <form className="add-day">
-                <input type="date"
+                <input className="form-control"
+                       type="date"
                        placeholder="Date"
                        value={this.state.date}
                        onChange={this.handleChange.bind(this, 'date')}/>
                 <button type="button"
-                        className="btn-main btn-left"
+                        className="btn"
                         onClick={this.handleAdd.bind(this)}>
                     Add day
                 </button>
@@ -50,13 +51,19 @@ const composer = graphql(AddDayMutation, {
     props: ({mutate, ownProps}) => ({
         addDay: (day) => mutate({
             variables: {conferenceID: ownProps.conferenceID, ...day},
-            optimisticResponse: day => ({addDay: {id: -1, __typename: "Day", ...day}})
+            optimisticResponse: day => ({
+                addDay: {
+                    id: -1,
+                    __typename: "Day",
+                    conference: {id: ownProps.conferenceID},
+                    ...day
+                }
+            })
         })
     }),
     options: (ownProps) => ({
         update: (proxy, {data: {addDay}}) => {
             const data = proxy.readQuery({query: GetDaysQuery, variables: {conferenceID: ownProps.conferenceID}});
-            console.error(data);
             data.getDays = [addDay, ...data.getDays.filter(day => {
                 return day.id !== addDay.id
             })];

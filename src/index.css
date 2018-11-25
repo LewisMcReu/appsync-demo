@@ -28,7 +28,7 @@ main {
     display: block;
 }
 
-.modal {
+.custom-modal {
     position: fixed;
     z-index: 100;
     left: 0;
@@ -40,7 +40,7 @@ main {
     background-color: rgba(0, 0, 0, 0.4);
 }
 
-.modal-content {
+.custom-modal-content {
     background-color: white;
     margin: 15% auto;
     padding: 10px;
@@ -85,20 +85,6 @@ main {
     display: block;
 }
 
-h1 {
-    margin: .2em auto;
-}
-
-h2, h3, p {
-    margin: 0;
-}
-
 .z10 {
     z-index: 10;
 }
-
-/*@media screen and (max-width: 600px) {*/
-/*.conference-detail {*/
-/*max-width: 100%;*/
-/*}*/
-/*}*/

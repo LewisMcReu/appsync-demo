@@ -27,40 +27,41 @@ class AddConferenceForm extends Component {
         const {name, startDate, endDate} = this.state;
         this.setState(this.getInitialState(), () => {
             this.props.addConference({name, startDate, endDate});
-            this.props.closeModal();
+            this.props.close();
         });
     };
 
     render() {
         return (
-            <div className="modal">
-                <div className="modal-content">
+            <div className="custom-modal">
+                <div className="custom-modal-content">
+                    <button className="btn button-close" onClick={this.props.close}>&times;</button>
                     <h1 className="margin-center">New conference</h1>
                     <form>
-                        <div>
-                            <label>Name</label>
-                            <input type="text"
+                        <div className="form-group">
+                            <label htmlFor="name">Name</label>
+                            <input id="name" className="form-control" type="text"
                                    placeholder="Name"
                                    value={this.state.name}
                                    onChange={this.handleChange.bind(this, 'name')}/>
                         </div>
-                        <div>
-                            <label>Start date</label>
-                            <input type="date"
+                        <div className="form-group">
+                            <label htmlFor="startdate">Start date</label>
+                            <input id="startdate" className="form-control" type="date"
                                    placeholder="Start date"
                                    value={this.state.startDate}
                                    onChange={this.handleChange.bind(this, 'startDate')}/>
                         </div>
-                        <div>
-                            <label>End date</label>
-                            <input type="date"
+                        <div className="form-group">
+                            <label htmlFor="enddate">End date</label>
+                            <input id="enddate" className="form-control" type="date"
                                    placeholder="End date"
                                    value={this.state.endDate}
                                    onChange={this.handleChange.bind(this, 'endDate')}/>
                         </div>
                         <div>
                             <button type="button"
-                                    className="btn-main btn-left"
+                                    className="btn"
                                     onClick={this.handleAdd.bind(this)}>
                                 Add conference
                             </button>
