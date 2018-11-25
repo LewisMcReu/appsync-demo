@@ -43,14 +43,11 @@ const composer = compose(
                 console.error("Subscribed Events");
                 const unsubscribeAdded = subscribeToMore({
                     document: AddedEvent,
-                    updateQuery: (previousResult, {subscriptionData: {data: {addedEvent}}}) => {
-                        if (ownProps.dayID === addedEvent.day.id)
-                            return ({
-                                ...previousResult,
-                                getEvents: [addedEvent, ...previousResult.getEvents.filter(event => event.id !== addedEvent.id)]
-                            });
-                        else return previousResult;
-                    }
+                    variables: {dayID: ownProps.dayID},
+                    updateQuery: (previousResult, {subscriptionData: {data: {addedEvent}}}) => ({
+                        ...previousResult,
+                        getEvents: [addedEvent, ...previousResult.getEvents.filter(event => event.id !== addedEvent.id)]
+                    })
                 });
 
                 return () => {
@@ -62,7 +59,8 @@ const composer = compose(
         options: (props) => ({
             variables: {
                 dayID: props.dayID
-            }
+            },
+            fetchPolicy: "cache-and-network"
         })
     })
 );

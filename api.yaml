@@ -17,26 +17,28 @@ Resources:
       ApiId: !GetAtt AppSyncApi.ApiId
       Definition: |
         type Event {
-          id: ID
-          day: Day
-          title: String
-          time: AWSTime
+          id: ID!
+          day: Day!
+          dayID: ID!
+          title: String!
+          time: AWSTime!
           location: String
           description: String
         }
 
         type Day {
-          id: ID
-          conference: Conference
-          date: AWSDate
+          id: ID!
+          conference: Conference!
+          conferenceID: ID!
+          date: AWSDate!
           events: [Event]
         }
 
         type Conference {
-          id: ID
-          name: String
-          startDate: AWSDate
-          endDate: AWSDate
+          id: ID!
+          name: String!
+          startDate: AWSDate!
+          endDate: AWSDate!
           days: [Day]
         }
 

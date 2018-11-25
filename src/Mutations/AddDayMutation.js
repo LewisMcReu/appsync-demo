@@ -5,9 +5,6 @@ mutation addDay($conferenceID: ID!, $date: AWSDate!) {
     addDay(conferenceID: $conferenceID, date: $date) {
         id
         date
-        conference {
-            id
-        }
     }
 }
 `;

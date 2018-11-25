@@ -85,20 +85,15 @@ const composer = compose(
                         getConferences: [addedConference, ...previousResult.getConferences.filter(conference => conference.id !== addedConference.id)]
                     })
                 });
-                // const unsubscribeUpdated = subscribeToMore({
-                //     document: UpdatedConference,
-                //     updateQuery: (previousResult, {subscriptionData: {data: {updatedConference}}}) => ({
-                //         ...previousResult,
-                //         getConferences: [updatedConference, ...previousResult.getConferences.filter(conference => conference.id !== updatedConference.id)]
-                //     })
-                // });
 
                 return () => {
                     unsubscribeAdded();
-                    // unsubscribeUpdated();
                 }
             }
-        })
+        }),
+        options: {
+            fetchPolicy: "cache-and-network"
+        }
     })
 );
 

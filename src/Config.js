@@ -1,5 +1,5 @@
 export default {
-    graphqlEndpoint: 'https://g3uidnc2gzcp7b6m565f2tui5y.appsync-api.eu-west-1.amazonaws.com/graphql',
+    graphqlEndpoint: 'https://apub7p5bljfipb6ao5u52622ym.appsync-api.eu-west-1.amazonaws.com/graphql',
     region: 'eu-west-1',
-    graphqlApiKey: 'da2-p5kpsdlekrftpgokp7zvcn63zu'
+    graphqlApiKey: 'da2-tws5vwyxlnfb5aixdo4kugux4i'
 };

@@ -34,7 +34,7 @@ class AddConferenceForm extends Component {
     render() {
         return (
             <div className="custom-modal">
-                <div className="custom-modal-content">
+                <div className="custom-modal-content conference-form">
                     <button className="btn button-close" onClick={this.props.close}>&times;</button>
                     <h1 className="margin-center">New conference</h1>
                     <form>

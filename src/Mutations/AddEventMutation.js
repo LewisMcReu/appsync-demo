@@ -8,9 +8,6 @@ mutation addEvent($dayID: ID!, $title: String!, $time: AWSTime!, $description: S
         time
         description
         location
-        day {
-            id
-        }
     }
 }
 `;

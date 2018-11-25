@@ -50,7 +50,7 @@ main {
     border-radius: 4px;
 }
 
-.conference-detail {
+.conference-detail, .conference-form, .event-form {
     max-width: 600px;
 }
 

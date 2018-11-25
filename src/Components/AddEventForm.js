@@ -34,7 +34,7 @@ class AddEventForm extends Component {
     render() {
         return (
             <div className="custom-modal z10">
-                <div className="custom-modal-content">
+                <div className="custom-modal-content event-form">
                     <button className="button-close" onClick={this.props.close}>&times;</button>
                     <h1 className="margin-center">New event</h1>
                     <form>
