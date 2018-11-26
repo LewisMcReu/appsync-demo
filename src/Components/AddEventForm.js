@@ -12,8 +12,8 @@ class AddEventForm extends Component {
     getInitialState = () => ({
         title: '',
         time: '',
-        description: '',
-        location: ''
+        description: null,
+        location: null
     });
 
     handleChange(field, event) {
@@ -31,11 +31,11 @@ class AddEventForm extends Component {
         });
     };
 
-   handleTimeChange(value){
-       this.setState({
-           time: value
-       })
-   }
+    handleTimeChange(value) {
+        this.setState({
+            time: value
+        })
+    }
 
     render() {
         return (
@@ -53,8 +53,8 @@ class AddEventForm extends Component {
                         <div>
                             <label htmlFor="time">Time</label>
                             <TimeInput id="time"
-                                className='form-control'
-                                onTimeChange={this.handleTimeChange.bind(this)}
+                                       className='form-control'
+                                       onTimeChange={this.handleTimeChange.bind(this)}
                             />
                         </div>
                         <div>
