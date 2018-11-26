@@ -2,6 +2,7 @@ import React, {Component} from 'react';
 import {graphql} from "react-apollo";
 import AddEventMutation from "../Mutations/AddEventMutation";
 import TimeInput from "react-time-input";
+import GetEventsQuery from "../Queries/GetEventsQuery";
 
 class AddEventForm extends Component {
     constructor(props) {
@@ -85,7 +86,25 @@ class AddEventForm extends Component {
 
 const composer = graphql(AddEventMutation, {
     props: ({mutate, ownProps}) => ({
-        addEvent: (event) => mutate({variables: {dayID: ownProps.dayID, ...event}})
+        addEvent: (event) => mutate({
+            variables: {dayID: ownProps.dayID, ...event},
+            optimisticResponse: event => ({
+                addEvent: {
+                    id: -1,
+                    __typename: "Event",
+                    ...event
+                }
+            })
+        })
+    }),
+    options: (ownProps) => ({
+        update: (proxy, {data: {addEvent}}) => {
+            const data = proxy.readQuery({query: GetEventsQuery, variables: {dayID: ownProps.dayID}});
+            data.getEvents = [addEvent, ...data.getEvents.filter(event => {
+                return event.id !== addEvent.id
+            })];
+            proxy.writeQuery({query: GetEventsQuery, variables: {dayID: ownProps.dayID}, data});
+        }
     })
 });
 

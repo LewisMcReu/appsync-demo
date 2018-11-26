@@ -50,6 +50,12 @@ main {
     border-radius: 4px;
 }
 
+@media screen and (min-width: 600px) {
+    .custom-modal-content {
+        margin: 90px auto;
+    }
+}
+
 .conference-detail, .conference-form, .event-form {
     max-width: 600px;
 }

@@ -1,5 +1,4 @@
 import React, {Component} from 'react';
-import './App.css';
 import AWSAppSyncClient, {AUTH_TYPE} from "aws-appsync/lib";
 import Config from './Config';
 import {BrowserRouter, Route, Switch} from "react-router-dom";
@@ -9,13 +8,18 @@ import {Rehydrated} from "aws-appsync-react";
 
 window.debug = true;
 
+const conflictResolver = ({mutation, mutationName, variables, data, retries}) => {
+    return {...variables};
+}
+
 const client = new AWSAppSyncClient({
     url: Config.graphqlEndpoint,
     region: Config.region,
     auth: {
         type: AUTH_TYPE.API_KEY,
         apiKey: Config.graphqlApiKey
-    }
+    },
+    conflictResolver: conflictResolver
 });
 
 class App extends Component {

@@ -55,7 +55,6 @@ const composer = graphql(AddDayMutation, {
                 addDay: {
                     id: -1,
                     __typename: "Day",
-                    conference: {id: ownProps.conferenceID},
                     ...day
                 }
             })
