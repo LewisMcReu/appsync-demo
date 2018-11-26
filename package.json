@@ -12,7 +12,8 @@
     "react-dom": "^16.6.3",
     "react-router-dom": "^4.3.1",
     "react-scripts": "2.1.1",
-    "react-time-input": "^0.0.19"
+    "react-time-input": "^0.0.19",
+    "wait": "^0.1.0"
   },
   "scripts": {
     "start": "react-scripts start",

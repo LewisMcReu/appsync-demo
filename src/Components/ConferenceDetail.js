@@ -34,8 +34,7 @@ export default class ConferenceDetail extends Component {
                 <div className="custom-modal-content conference-detail">
                     <button className="btn button-close" onClick={this.props.close}>&times;</button>
                     <h1>{item.name}</h1>
-                    <span>{item.startDate}</span>
-                    <span>{item.endDate}</span>
+                    <p>{item.startDate} - {item.endDate}</p>
                     {this.state.add ?
                         <AddDayForm conferenceID={item.id} close={this.closeModals.bind(this)}/> :
                         <button className="btn" onClick={this.openAdd.bind(this)}>Add day</button>

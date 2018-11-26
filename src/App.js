@@ -5,12 +5,15 @@ import {BrowserRouter, Route, Switch} from "react-router-dom";
 import ApolloProvider from "react-apollo/ApolloProvider";
 import ConferenceList from "./Components/ConferenceList";
 import {Rehydrated} from "aws-appsync-react";
-
+import GetConferencesQuery from "./Queries/GetConferencesQuery";
+import {MockedProvider} from "react-apollo/test-utils";
+import GetDaysQuery from "./Queries/GetDaysQuery";
+import wait from "waait";
 window.debug = true;
 
 const conflictResolver = ({mutation, mutationName, variables, data, retries}) => {
     return {...variables};
-}
+};
 
 const client = new AWSAppSyncClient({
     url: Config.graphqlEndpoint,

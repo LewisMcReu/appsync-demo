@@ -63,9 +63,8 @@ class ConferenceList extends Component {
     renderItem(item) {
         return (
             <div className="conference-list-item" key={item.id}>
-                <span>{item.name}</span>
-                <span>{item.startDate}</span>
-                <span>{item.endDate}</span>
+                <h6>{item.name}</h6>
+                <p>{item.startDate} - {item.endDate}</p>
                 <button className="btn" onClick={this.openItemDetail.bind(this, item)}>Detail</button>
             </div>
         );
