@@ -8,9 +8,6 @@ subscription addedEvent {
         time
         location
         description
-        day {
-            id
-        }
     }
 }
 `;

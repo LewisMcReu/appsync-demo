@@ -126,6 +126,19 @@ Resources:
           Principal:
             Service:
             - appsync.amazonaws.com
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: demo-appsync-dynamodb-role
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action:
+          - sts:AssumeRole
+          Principal:
+            Service:
+            - lambda.amazonaws.com
     DependsOn:
     - AppSyncIAMPolicy
   AppSyncDataSource:
@@ -141,6 +154,28 @@ Resources:
     DependsOn:
     - AppSyncIAMRole
     - DynamoDBTable
+  LambdaConflictResolver:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: |
+          exports.handler = (event, context, callback) => {
+              const response = {
+                  "action": "retry",
+                  "retryMapping": {
+                      "attributeValues": {
+                          ...event.requestMapping.attributeValues
+                      },
+                      "condition": {
+                          "expression": event.requestMapping.condition.expression
+                      }
+                  }
+              }
+              callback(null, response)
+          };
+      Handler: index.handler
+      Role: !GetAtt LambdaRole.Arn
+      Runtime: nodejs8.10
   EventDayResolver:
     Type: AWS::AppSync::Resolver
     Properties:
@@ -330,7 +365,7 @@ Resources:
       DataSourceName: !GetAtt AppSyncDataSource.Name
       ApiId: !GetAtt AppSyncApi.ApiId
       FieldName: addConference
-      RequestMappingTemplate: |
+      RequestMappingTemplate: !Sub |
         {
           "version": "2017-02-28",
           "operation": "PutItem",
@@ -343,7 +378,7 @@ Resources:
             "expression": "attribute_not_exists(id)",
             "conditionalCheckFailedHandler" : {
                 "strategy" : "Custom",
-                "lambdaArn" : "arn:aws:lambda:eu-west-1:566292462276:function:AppSyncConflictResolver"
+                "lambdaArn" : ${LambdaConflictResolver.Arn}
             }
           }
         }
@@ -411,7 +446,7 @@ Resources:
       DataSourceName: !GetAtt AppSyncDataSource.Name
       ApiId: !GetAtt AppSyncApi.ApiId
       FieldName: addDay
-      RequestMappingTemplate: |
+      RequestMappingTemplate: !Sub |
         {
           "version": "2017-02-28",
           "operation": "PutItem",
@@ -424,7 +459,7 @@ Resources:
             "expression": "attribute_not_exists(id)",
             "conditionalCheckFailedHandler" : {
                 "strategy" : "Custom",
-                "lambdaArn" : "arn:aws:lambda:eu-west-1:566292462276:function:AppSyncConflictResolver"
+                "lambdaArn" : ${LambdaConflictResolver.Arn}
             }
           }
         }
@@ -441,7 +476,7 @@ Resources:
       DataSourceName: !GetAtt AppSyncDataSource.Name
       ApiId: !GetAtt AppSyncApi.ApiId
       FieldName: addEvent
-      RequestMappingTemplate: |
+      RequestMappingTemplate: !Sub |
         {
           "version": "2017-02-28",
           "operation": "PutItem",
@@ -454,7 +489,7 @@ Resources:
             "expression": "attribute_not_exists(id)",
             "conditionalCheckFailedHandler" : {
                 "strategy" : "Custom",
-                "lambdaArn" : "arn:aws:lambda:eu-west-1:566292462276:function:AppSyncConflictResolver"
+                "lambdaArn" : ${LambdaConflictResolver.Arn}
             }
           }
         }

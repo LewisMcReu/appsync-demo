@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {graphql} from "react-apollo";
 import AddEventMutation from "../Mutations/AddEventMutation";
+import TimeInput from "react-time-input";
 
 class AddEventForm extends Component {
     constructor(props) {
@@ -9,15 +10,14 @@ class AddEventForm extends Component {
     }
 
     getInitialState = () => ({
-        title: undefined,
-        time: undefined,
-        description: undefined,
-        location: undefined
+        title: '',
+        time: '',
+        description: '',
+        location: ''
     });
 
     handleChange(field, event) {
         const {target: {value}} = event;
-
         this.setState({
             [field]: value
         });
@@ -31,38 +31,41 @@ class AddEventForm extends Component {
         });
     };
 
+   handleTimeChange(value){
+       this.setState({
+           time: value
+       })
+   }
+
     render() {
         return (
             <div className="custom-modal z10">
                 <div className="custom-modal-content event-form">
-                    <button className="button-close" onClick={this.props.close}>&times;</button>
+                    <button className="btn button-close" onClick={this.props.close}>&times;</button>
                     <h1 className="margin-center">New event</h1>
                     <form>
                         <div>
                             <label htmlFor="title">Title</label>
-                            <input className="form-control" type="text"
-                                   placeholder="Title"
+                            <input className="form-control" type="text" id="title"
                                    value={this.state.title}
                                    onChange={this.handleChange.bind(this, 'title')}/>
                         </div>
                         <div>
                             <label htmlFor="time">Time</label>
-                            <input className="form-control" type="time"
-                                   placeholder="Time"
-                                   value={this.state.time}
-                                   onChange={this.handleChange.bind(this, 'time')}/>
+                            <TimeInput id="time"
+                                className='form-control'
+                                onTimeChange={this.handleTimeChange.bind(this)}
+                            />
                         </div>
                         <div>
                             <label htmlFor="location">Location</label>
-                            <input className="form-control" type="text"
-                                   placeholder="Location"
+                            <input className="form-control" type="text" id="location"
                                    value={this.state.location}
                                    onChange={this.handleChange.bind(this, 'location')}/>
                         </div>
                         <div>
                             <label htmlFor="description">Description</label>
-                            <textarea className="form-control"
-                                      placeholder="Description"
+                            <textarea className="form-control" id="description"
                                       value={this.state.description}
                                       onChange={this.handleChange.bind(this, 'description')}/>
                         </div>

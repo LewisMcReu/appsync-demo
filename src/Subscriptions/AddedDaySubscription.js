@@ -5,9 +5,6 @@ subscription addedDay {
     addedDay {
         id
         date
-        conference {
-            id
-        }
     }
 }
 `;

@@ -36,7 +36,6 @@ const composer = compose(
             days: getDays ? getDays : [],
             loading,
             subscribe: () => {
-                console.error("Subscribed Days");
                 const unsubscribeAdded = subscribeToMore({
                     document: AddedDaySubscription,
                     variables: {conferenceID: ownProps.conferenceID},
@@ -47,7 +46,6 @@ const composer = compose(
                 });
 
                 return () => {
-                    console.error("Unsubscribed Days");
                     unsubscribeAdded();
                 }
             }
