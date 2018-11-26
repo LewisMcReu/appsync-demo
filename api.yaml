@@ -338,7 +338,14 @@ Resources:
             "id": $utils.dynamodb.toDynamoDBJson($utils.autoId()),
             "objecttype": { "S": "conference" }
           },
-          "attributeValues": $utils.dynamodb.toMapValuesJson($ctx.args)
+          "attributeValues": $utils.dynamodb.toMapValuesJson($ctx.args),
+          "condition" : {
+            "expression": "attribute_not_exists(id)",
+            "conditionalCheckFailedHandler" : {
+                "strategy" : "Custom",
+                "lambdaArn" : "arn:aws:lambda:eu-west-1:566292462276:function:AppSyncConflictResolver"
+            }
+          }
         }
       ResponseMappingTemplate: |
         $utils.toJson($ctx.result)
@@ -412,7 +419,14 @@ Resources:
             "id": $utils.dynamodb.toDynamoDBJson($utils.autoId()),
             "objecttype": { "S": "day" }
           },
-          "attributeValues": $utils.dynamodb.toMapValuesJson($ctx.args)
+          "attributeValues": $utils.dynamodb.toMapValuesJson($ctx.args),
+          "condition" : {
+            "expression": "attribute_not_exists(id)",
+            "conditionalCheckFailedHandler" : {
+                "strategy" : "Custom",
+                "lambdaArn" : "arn:aws:lambda:eu-west-1:566292462276:function:AppSyncConflictResolver"
+            }
+          }
         }
       ResponseMappingTemplate: |
         $utils.toJson($ctx.result)
@@ -435,7 +449,14 @@ Resources:
             "id": $utils.dynamodb.toDynamoDBJson($utils.autoId()),
             "objecttype": { "S": "event" }
           },
-          "attributeValues": $utils.dynamodb.toMapValuesJson($ctx.args)
+          "attributeValues": $utils.dynamodb.toMapValuesJson($ctx.args),
+          "condition" : {
+            "expression": "attribute_not_exists(id)",
+            "conditionalCheckFailedHandler" : {
+                "strategy" : "Custom",
+                "lambdaArn" : "arn:aws:lambda:eu-west-1:566292462276:function:AppSyncConflictResolver"
+            }
+          }
         }
       ResponseMappingTemplate: |
         $utils.toJson($ctx.result)
