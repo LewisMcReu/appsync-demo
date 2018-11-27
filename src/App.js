@@ -5,10 +5,11 @@ import {BrowserRouter, Route, Switch} from "react-router-dom";
 import ApolloProvider from "react-apollo/ApolloProvider";
 import ConferenceList from "./Components/ConferenceList";
 import {Rehydrated} from "aws-appsync-react";
-import GetConferencesQuery from "./Queries/GetConferencesQuery";
 import {MockedProvider} from "react-apollo/test-utils";
+import GetConferencesQuery from "./Queries/GetConferencesQuery";
 import GetDaysQuery from "./Queries/GetDaysQuery";
-import wait from "waait";
+import GetEventsQuery from "./Queries/GetEventsQuery";
+
 window.debug = true;
 
 const conflictResolver = ({mutation, mutationName, variables, data, retries}) => {
@@ -50,4 +51,48 @@ const WithProvider = (props) => (
     </ApolloProvider>
 );
 
+const mocks = [
+    {
+        request: {
+            query: GetConferencesQuery
+        },
+        result: {
+            data: [
+                {id: 0, name: "AppSync Meetup Mock", startDate: "2018-10-11", endDate: "2018-10-13"}
+            ]
+        }
+    },
+    {
+        request: {
+            query: GetDaysQuery,
+            variables: {
+                conferenceID: 0
+            }
+        },
+        result: {
+            data: [{id: 1, date: "2018-10-12"}]
+        }
+    },
+    {
+        request: {
+            query: GetEventsQuery,
+            variables: {
+                dayID: 1
+            }
+        },
+        result: {
+            data: [{id: 2, title: "AppSync", time: "18:30", location: "Cronos Leuven"}]
+        }
+    }
+];
+
+const WithMockedProvider = (props) => (
+<MockedProvider mocks={[mocks]} addTypename={false}>
+    <BrowserRouter>
+        <App/>
+    </BrowserRouter>
+</MockedProvider>);
+
 export default WithProvider;
+
+export {WithProvider, WithMockedProvider};
